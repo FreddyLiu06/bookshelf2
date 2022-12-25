@@ -38,7 +38,7 @@ const addBookToLibrary = async (bookID, title, authors, publishDate, imageLink, 
             authors: authors,
             publishDate: publishDate,
             imageLink: imageLink,
-            genres: genres
+            genres: genres,
         }),
         
     })
