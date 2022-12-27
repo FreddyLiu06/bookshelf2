@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import api from '../api';
 import { Grid, Button, Card, CardContent, alertClasses} from "@mui/material";
 import { Search } from "@mui/icons-material";
+import ReactHtmlParser from 'react-html-parser';
 
 const BookDetails = (props) => {
     // Get ID of book being displayed
@@ -47,6 +48,9 @@ const BookDetails = (props) => {
                                 <Grid item xs = {10}>
                                     <h1>{bookData.volumeInfo.title}</h1>
                                     <h2 style={{fontWeight: 'normal'}}>{getAuthorNames()}</h2>
+                                    <br></br>
+                                    <div>{ReactHtmlParser(bookData.volumeInfo.description)}</div>
+                                    <br></br>
                                     <a style={{display:'inline'}} href={bookData.volumeInfo.previewLink}>Google Books</a>
                                     <p style={{color: 'grey', fontSize: 10}}>Published {bookData.volumeInfo.publishedDate}</p>
                                 </Grid>
