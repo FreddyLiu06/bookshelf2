@@ -10,7 +10,7 @@ const BookDetails = (props) => {
     const idSet = new Set();
 
     const [bookData, setBookData] = useState({});
-    const [inShelf, setInShelf] = useState(false);
+    const [idSetState, setIdSetState] = useState(new Set()) // State for set of bookIDs in shelf
 
     const getAuthorNames = () => {
         let authors = '';
@@ -34,8 +34,20 @@ const BookDetails = (props) => {
         const bookQ = await api.getBookByID(bookID);
         setBookData(bookQ.data);
         getAllIDInShelf();
-        setInShelf(idSet.has(bookID));
+        setIdSetState(idSet);
     }
+
+    const handleAddToShelf = async (data) => {
+        await api.addBookToLibrary(data.id, data.volumeInfo.title, data.volumeInfo.authors, data.volumeInfo.publishedDate, data.volumeInfo.imageLinks?.thumbnail, [data.volumeInfo.categories[0]]);
+        idSet.add(data.id);
+        setIdSetState(idSet);
+      }
+    
+      const handleRemoveFromShelf = async (bookID) => {
+        await api.removeBook(bookID);
+        idSet.delete(bookID);
+        setIdSetState(idSet);
+      }
 
     useEffect(() => {
         init();
@@ -52,7 +64,9 @@ const BookDetails = (props) => {
                                 <Grid container item xs = {2} justifyContent='center'>
                                     <div align="center">
                                         <img src={bookData.volumeInfo?.imageLinks?.thumbnail}/>
-                                        {inShelf ? <Button height="90%" style={{color: 'red'}}>Remove from shelf</Button> : <Button height="90%">Add to bookshelf</Button>}
+                                        {idSetState.has(bookID) ? 
+                                        <Button height="90%" style={{color: 'red'}} onClick={() => {handleRemoveFromShelf(bookData.id)}}>Remove from shelf</Button> : 
+                                        <Button height="90%" onClick={() => {handleAddToShelf(bookData)}}>Add to bookshelf</Button>}
                                     </div>
                                 </Grid>
                                 <Grid item xs = {10}>
