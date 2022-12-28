@@ -51,11 +51,21 @@ const getBooksInShelf = async () => {
     return result;
 }
 
+const removeBook = async (bookID) => {
+    const result = await axios.delete('http://127.0.0.1:8000/api/removeBook', {
+        data: {
+            bookID: bookID,
+        }
+    })
+    return result;
+}
+
 const api = {
     search,
     getBookByID,
     addBookToLibrary,
     getBooksInShelf,
+    removeBook,
 }
 
 export default api;

@@ -1,8 +1,9 @@
 import {useEffect, useState} from 'react'
-import {Grid, Card, CardContent} from '@mui/material'
+import {Grid, Card, CardContent, Button} from '@mui/material'
 import MUIDataTable from 'mui-datatables' 
 import {Link} from 'react-router-dom'
 import api from '../api'
+import { red } from '@mui/material/colors'
 
 const Shelf = () => {
     const [shelfData, setShelfData] = useState([])
@@ -16,6 +17,13 @@ const Shelf = () => {
     useEffect(()=> {
         init();
     }, [])
+
+    // Method to remove book from bookshelf
+    const handleRemoveFromShelf = async (bookID) => {
+      await api.removeBook(bookID);
+      const data = shelfData.filter((book) => book.bookID != bookID);
+      setShelfData(data);
+    }
 
     // Columns to display bookshelf
     const shelfColumns = [
@@ -82,6 +90,21 @@ const Shelf = () => {
             }
           }
         },
+        {
+          label: 'Action',
+          name: 'action',
+          options: {
+            customBodyRenderLite: (dataIndex) => {
+                return (
+                  <Button onClick={() => {handleRemoveFromShelf(shelfData[dataIndex].bookID)}}
+                    style={{
+                      color: 'red'
+                    }}
+                    >Remove</Button>
+                )  
+            }
+          }
+        }
     ]
 
     const shelfOptions = {
