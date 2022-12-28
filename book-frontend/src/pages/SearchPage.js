@@ -1,4 +1,4 @@
-import {React, useState} from "react";
+import {React, useState, useEffect} from "react";
 import {TextField, Grid, Button, Card, CardContent, alertClasses} from "@mui/material";
 import { Search } from "@mui/icons-material";
 import api from '../api'
@@ -7,8 +7,29 @@ import {Link} from 'react-router-dom';
 
 const SearchPage = () => {
 
+  const idSet = new Set();
+
   // State to store data for the books that were retrieved from the books
   const [bookData, setBookData] = useState([])
+  const [idSetState, setIdSetState] = useState(new Set()) // State for set of bookIDs in shelf
+
+  // Method that gets all bookIDs that are in shelf and stores it in the set
+  const getAllIDInShelf = async () => {
+    const shelfQ = await api.getBooksInShelf();
+    const shelfarr = shelfQ.data.data;
+    for (const book of shelfarr) {
+        idSet.add(book['bookID']);
+    }
+    setIdSetState(idSet);
+  }
+
+  const init = async () => {
+    getAllIDInShelf();
+  }
+
+  useEffect(() => {
+    init();
+  }, [])
 
   // Method to search for books using the Google API once the form is submitted
   const handleSearch = async (event) => {
@@ -21,12 +42,22 @@ const SearchPage = () => {
     if (title || author) {
       const bookResults = await api.search(title, author);
       setBookData(bookResults.data.items);
-    } 
+    }
   }
 
   const handleAddToShelf = async (data) => {
-    await api.addBookToLibrary(data.id, data.volumeInfo.title, data.volumeInfo.authors, data.volumeInfo.publishedDate, data.volumeInfo.imageLinks?.thumbnail, data.volumeInfo.categories)
+    await api.addBookToLibrary(data.id, data.volumeInfo.title, data.volumeInfo.authors, data.volumeInfo.publishedDate, data.volumeInfo.imageLinks?.thumbnail, data.volumeInfo.categories);
+    idSet.add(data.id);
+    setIdSetState(idSet);
   }
+
+  const handleRemoveFromShelf = async (bookID) => {
+    await api.removeBook(bookID);
+    idSet.delete(bookID);
+    setIdSetState(idSet);    
+  }
+
+
 
   // Define columns for table to display books 
   const bookColumns = [
@@ -92,7 +123,8 @@ const SearchPage = () => {
       name: 'book-action',
       options: {
         customBodyRenderLite: (dataIndex) => {
-          return (
+          return (idSetState.has(bookData[dataIndex].id) ? 
+            <Button onClick={() => {handleRemoveFromShelf(bookData[dataIndex].id)}} style={{color: "red"}}>Remove from bookshelf</Button> :
             <Button onClick={() => {handleAddToShelf(bookData[dataIndex])}}>Add to bookshelf</Button>
           )
         }
@@ -105,8 +137,9 @@ const SearchPage = () => {
     filter: false,
     print: false,
     download: false,
-    // search: false,
+    search: false,
 
+    /*
     // Define custom search in the table
     customSearch: (searchQuery, currentRow, columns) => {
       searchQuery = searchQuery.toLowerCase(); // convert query to lowercase
@@ -120,6 +153,7 @@ const SearchPage = () => {
           }
       });
     },
+    */
     
   }
 
