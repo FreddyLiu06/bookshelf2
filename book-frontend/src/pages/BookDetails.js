@@ -7,8 +7,10 @@ import ReactHtmlParser from 'react-html-parser';
 const BookDetails = (props) => {
     // Get ID of book being displayed
     const bookID = props.location.state.bookID;
+    const idSet = new Set();
 
     const [bookData, setBookData] = useState({});
+    const [inShelf, setInShelf] = useState(false);
 
     const getAuthorNames = () => {
         let authors = '';
@@ -18,10 +20,21 @@ const BookDetails = (props) => {
         return authors.slice(0,-2);
     }
 
+    // Method that gets all bookIDs that are in shelf and stores it in idSet
+    const getAllIDInShelf = async () => {
+        const shelfQ = await api.getBooksInShelf();
+        const shelfarr = shelfQ.data.data;
+        for (const book of shelfarr) {
+            idSet.add(book['bookID']);
+        }
+    }
+
     // Initial method to get the book data from the api
     const init = async () => {
-        const result = await api.getBookByID(bookID);
-        setBookData(result.data);
+        const bookQ = await api.getBookByID(bookID);
+        setBookData(bookQ.data);
+        getAllIDInShelf();
+        setInShelf(idSet.has(bookID));
     }
 
     useEffect(() => {
@@ -37,13 +50,10 @@ const BookDetails = (props) => {
                         <CardContent>
                             <Grid container spacing={1} justifyContent='center'>
                                 <Grid container item xs = {2} justifyContent='center'>
-                                    <Grid item style = {{marginBottom: 2}}>
+                                    <div align="center">
                                         <img src={bookData.volumeInfo?.imageLinks?.thumbnail}/>
-                                    </Grid>
-                                    <Grid item>
-                                        <Button>Add to bookshelf</Button>
-                                    </Grid>
-
+                                        {inShelf ? <Button height="90%" style={{color: 'red'}}>Remove from shelf</Button> : <Button height="90%">Add to bookshelf</Button>}
+                                    </div>
                                 </Grid>
                                 <Grid item xs = {10}>
                                     <h1>{bookData.volumeInfo.title}</h1>
